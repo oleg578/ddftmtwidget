@@ -9,6 +9,12 @@ This is a Shopify widget that fetches data from a third-party API provider and d
 - Customizable widget
 - State storage in browser Local storage
 
+## Tech stack
+
+- HTML
+- CSS
+- JavaScript [Vanilla Framework](http://vanilla-js.com/)
+
 ## API Provider features
 
 - Data is synchronized with current Shopify store database through Shopify API WEBHOOKS, so the data is always up-to-date
