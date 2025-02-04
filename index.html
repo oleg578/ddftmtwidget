@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="theme.css">
+        <link rel="stylesheet" href="shadow.css">
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+        <div id="ddfitment-widget" class="container">
+            <div id="logo-container">
+                <div id="ddfitment-logo"></div>
+            </div>
+            <div id="ddfitment-searchbox" class="ddfitment-rolled">
+                <select id="year-select" class="ddfitment-select">
+                    <option>Select Year</option>
+                </select>
+                <select id="make-select" class="ddfitment-select" disabled="disabled">
+                    <option>Select Make</option>
+                </select>
+                <select id="equipment-select" class="ddfitment-select" disabled="disabled">
+                    <option>Select Equipment Type</option>
+                </select>
+                <select id="model-select" class="ddfitment-select" disabled="disabled">
+                    <option>Select Model</option>
+                </select>
+                <div id="ddfitment-actions-panel">
+                    <button id="search-action" class="action-btn" disabled="disabled" data-link="">
+                        GO
+                    </button>
+                    <div class="ddfitment-clear-panel">
+                        <button id="clear-action" class="action-btn">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="main.js"></script>
+        <script src="client.js"></script>
+        <script src="year.js"></script>
+        <script src="makes.js"></script>
+        <script src="equipment.js"></script>
+        <script src="model.js"></script>
+        <script src="actions.js"></script>
+        <script src="storage.js"></script>
+        <script src="collapse.js"></script>
+    </body>
+
+</html>

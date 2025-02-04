@@ -1,0 +1,509 @@
+<div class="container">
+  <span class="easysearch-fitment-params"></span>
+</div>
+{% capture esfpc %}{% endcapture %}
+<script>document.addEventListener('easysearch_loaded', function(){easysearch.initFitmentWidget({allProductTags: {{ product.tags | json }}});});</script>
+
+{% schema %}
+  {
+    "name": "testing",
+    "settings": []
+  }
+{% endschema %}
+{% comment %}
+Fitment Search another widget
+{% endcomment %}
+
+{% stylesheet %}
+#ddfitment-widget {
+  background-color: #58595b;
+  top: 0;
+  z-index: 4;
+  display: grid;
+  gap: 0.5rem;
+  padding: 4px 32px;
+  place-items: center;
+}
+
+#ddfitment-searchbox {
+  display: grid;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  grid-template-columns: 1fr;
+  overflow: hidden;
+}
+#ddfitment-logo {
+  min-width: 145px;
+  min-height: 36px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(//cdn.shopify.com/s/files/1/0506/1761/4515/files/fitment-tool-icon-white.png?v=1663618276);
+}
+
+#ddfitment-actions-panel {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: #ffffff;
+  justify-items: center;
+  justify-content: space-between;
+}
+
+.action-btn {
+  padding: 4px;
+  min-width: 4rem;
+  border-radius: 4px;
+}
+
+button#search-action {
+  background: #ff7801;
+}
+
+button#search-action:disabled {
+  background: rgba(255, 120, 1, 0.27);
+}
+
+button#clear-action {
+  background-color: #ff0000;
+}
+
+select.ddfitment-select {
+  padding: 8px;
+  appearance: menulist-button;
+  -webkit-appearance: menulist-button;
+  height: 36px;
+}
+
+@media (min-width: 1200px) {
+  #ddfitment-widget {
+    grid-template-columns: 145px 1fr;
+  }
+  #ddfitment-searchbox {
+    grid-template-columns:
+      minmax(8rem, 10rem) minmax(12rem, 1fr) minmax(10rem, 1fr)
+      1fr 12rem;
+  }
+
+  #ddfitment-actions-panel {
+    justify-content: start;
+  }
+}
+.action-btn:hover {
+  cursor: pointer;
+}
+{% endstylesheet %}
+
+{% javascript %}
+window.addEventListener('DOMContentLoaded', (event) => {
+    Init();
+});
+
+async function Init() {
+    await buildYears();
+    await restoreState();
+}
+// @ts-ignore
+const fmtEndPoint = 'https://shopitreeapi.fixmytoys.com'
+async function getYears() {
+    const url = fmtEndPoint + '/ftmt/year/'
+    return fetch(url)
+        .then((response) => {
+            return response.json();
+        })
+}
+
+async function getMakes(year) {
+    const url = fmtEndPoint + '/ftmt/brand/?year=' + year;
+    return fetch(url)
+        .then((response) => {
+            return response.json();
+        })
+}
+
+async function getEquipments(year, make) {
+    const url = fmtEndPoint + '/ftmt/equipment/?year=' + year + "&brand=" + make;
+    return fetch(url)
+        .then((response) => {
+            return response.json();
+        })
+}
+
+async function getModels(year, make, equipment) {
+    const url = fmtEndPoint + '/ftmt/model/?year=' + year + "&brand=" + make + "&equipmenttype=" + equipment;
+    return fetch(url)
+        .then((response) => {
+            return response.json();
+        })
+}
+// @ts-ignore
+async function buildYears() {
+    try {
+        let data = await getYears();
+        let years = [];
+        if ('Response' in data) {
+            years = data.Response.filter(y => y.length > 0);
+        }
+        const container = document.getElementById("year-select");
+        years.forEach(year => {
+            let yearOption = document.createElement("option");
+            yearOption.innerHTML = `${year}`;
+            container.appendChild(yearOption);
+        });
+        //restoreState();
+    } catch (error) {
+        console.log("Error fetching years: ", error);
+    }
+}
+
+
+//years observer
+const YearSelect = document.getElementById("year-select");
+YearSelect.addEventListener('change', (event) => {
+    event.target.dataset.year = event.target.value;
+});
+const yselconfig = { attributes: true, characterData: true, attributeFilter: ['data-year'] };
+const yearMutProc = (mutationList, observer) => {
+    for (const mutation of mutationList) {
+        if (mutation.type === 'attributes') {
+            if (mutation.target.dataset.year.length > 0) {
+                clearMakes();
+                clearEquipments();
+                clearModels();
+                clearGo();
+                let ftmt = new Fitment(mutation.target.dataset.year, null, null, null)
+                ftmt.store();
+                buildMakes(mutation.target.value);
+            }
+        }
+    }
+};
+const yearObserver = new MutationObserver(yearMutProc);
+yearObserver.observe(YearSelect, yselconfig);
+// @ts-ignore
+
+function clearMakes() {
+    const makes = document.getElementById("make-select");
+    while (makes.firstChild) {
+        makes.removeChild(makes.firstChild);
+    }
+    makes.dataset.make = '';
+    stub = document.createElement("option");
+    stub.innerText = 'Select Make';
+    makes.appendChild(stub);
+    makes.disabled = true;
+}
+
+async function buildMakes(year) {
+    try {
+        let data = await getMakes(year);
+        let makes = [];
+        if ('Response' in data) {
+            makes = data.Response.filter(m => m.length > 0);
+        }
+        const container = document.getElementById("make-select");
+        makes.forEach(make => {
+            let makeOption = document.createElement("option");
+            makeOption.innerHTML = `${make}`;
+            container.appendChild(makeOption);
+        });
+        container.disabled = false;
+    } catch (error) {
+        console.log("Error fetching brands: ", error);
+    }
+}
+
+//makes observer
+const MakeSelect = document.getElementById("make-select");
+MakeSelect.addEventListener('change', (event) => {
+    event.target.dataset.make = event.target.value;
+});
+const mselconfig = { attributes: true, characterData: true, attributeFilter: ['data-make'] };
+const makeMutProc = (mutationList, observer) => {
+    for (const mutation of mutationList) {
+        if (mutation.type === 'attributes') {
+            if (mutation.target.dataset.make.length > 0) {
+                clearEquipments();
+                clearModels();
+                clearGo();
+                const yearselect = document.getElementById("year-select");
+                let ftmt = new Fitment(yearselect.dataset.year, mutation.target.dataset.make, null, null)
+                ftmt.store();
+                buildEquipments(yearselect.dataset.year, mutation.target.value)
+            }
+        }
+    }
+};
+const makeObserver = new MutationObserver(makeMutProc);
+makeObserver.observe(MakeSelect, mselconfig);
+// @ts-ignore
+
+function clearEquipments() {
+    const equipments = document.getElementById("equipment-select");
+    while (equipments.firstChild) {
+        equipments.removeChild(equipments.firstChild);
+    }
+    equipments.dataset.equipment = '';
+    stub = document.createElement("option");
+    stub.innerText = 'Select Equipment Type';
+    equipments.appendChild(stub);
+    equipments.disabled = true;
+}
+
+async function buildEquipments(year, make) {
+    try {
+        let data = await getEquipments(year, make);
+        let eqps = [];
+        if ('Response' in data) {
+            eqps = data.Response.filter(eqp => eqp.length > 0);
+        }
+        const container = document.getElementById("equipment-select");
+        eqps.forEach(eqp => {
+            let eqOption = document.createElement("option");
+            eqOption.innerHTML = `${eqp}`;
+            container.appendChild(eqOption);
+        });
+        container.disabled = false;
+    } catch (error) {
+        console.log("Error fetching equipmqnts: ", error);
+    }
+}
+
+//equipments observer
+const EqmtSelect = document.getElementById("equipment-select");
+EqmtSelect.addEventListener('change', (event) => {
+    event.target.dataset.equipment = event.target.value;
+});
+const eqconfig = { attributes: true, characterData: true, attributeFilter: ['data-equipment'] };
+const eqMutProc = (mutationList, observer) => {
+    for (const mutation of mutationList) {
+        if (mutation.type === 'attributes') {
+            if (mutation.target.dataset.equipment.length > 0) {
+                clearModels();
+                clearGo();
+                const yearselect = document.getElementById("year-select");
+                const makeselect = document.getElementById("make-select");
+                let ftmt = new Fitment(yearselect.dataset.year,
+                    makeselect.dataset.make, mutation.target.dataset.equipment, null)
+                ftmt.store();
+                buildModels(yearselect.dataset.year, makeselect.dataset.make, mutation.target.value)
+            }
+        }
+    }
+};
+const eqObserver = new MutationObserver(eqMutProc);
+eqObserver.observe(EqmtSelect, eqconfig);
+// @ts-ignore
+
+function clearModels() {
+    const models = document.getElementById("model-select");
+    while (models.firstChild) {
+        models.removeChild(models.firstChild);
+    }
+    models.dataset.model = '';
+    stub = document.createElement("option");
+    stub.innerText = 'Select Model';
+    models.appendChild(stub);
+    models.disabled = true;
+}
+
+async function buildModels(year, make, equipment) {
+    try {
+        let data = await getModels(year, make, equipment);
+        let models = [];
+        if ('Response' in data) {
+            models = data.Response.filter(m => m.handle.length > 0);
+        }
+        const container = document.getElementById("model-select");
+        models.forEach(model => {
+            let modelOption = document.createElement("option");
+            modelOption.innerText = `${model.model}`;
+            modelOption.value = model.handle;
+            container.appendChild(modelOption);
+        });
+        container.disabled = false;
+    } catch (error) {
+        console.log("Error fetching brands: ", error);
+    }
+}
+
+//model observer
+const ModelSelect = document.getElementById("model-select");
+ModelSelect.addEventListener('change', (event) => {
+    event.target.dataset.model = event.target.value;
+});
+const modselconfig = { attributes: true, characterData: true, attributeFilter: ['data-model'] };
+const modelMutProc = (mutationList, observer) => {
+    for (const mutation of mutationList) {
+        if (mutation.type === 'attributes') {
+            if (mutation.target.dataset.model.length > 0) {
+                const yearselect = document.getElementById("year-select");
+                const makeselect = document.getElementById("make-select");
+                const eqselect = document.getElementById("equipment-select");
+                let ftmt = new Fitment(yearselect.dataset.year,
+                    makeselect.dataset.make, eqselect.dataset.equipment,
+                    mutation.target.dataset.model)
+                ftmt.store();
+                clearGo();
+                setGo("/" + "collections/" + mutation.target.dataset.model);
+                enableGo();
+            }
+        }
+    }
+};
+const modelObserver = new MutationObserver(modelMutProc);
+modelObserver.observe(ModelSelect, modselconfig);
+// @ts-ignore
+
+// reset button
+resetBtn = document.getElementById("clear-action");
+resetBtn.addEventListener('click', (event) => {
+    resetChoise();
+});
+
+// GO button
+resetBtn = document.getElementById("search-action");
+resetBtn.addEventListener('click', (event) => {
+    url = event.target.dataset.link;
+    window.location = url;
+});
+
+function clearGo() {
+    let btn = document.getElementById("search-action");
+    btn.dataset.link = '';
+    btn.disabled = true;
+}
+
+function enableGo() {
+    let btn = document.getElementById("search-action");
+    btn.disabled = false;
+
+}
+
+function setGo(url) {
+    let btn = document.getElementById("search-action");
+    btn.dataset.link = url;
+}
+
+function resetChoise() {
+    localStorage.removeItem('FitmentSet');
+    let year = document.getElementById("year-select");
+    year.value = 'Select Year';
+    year.dataset.year = '';
+    clearMakes();
+    clearEquipments();
+    clearModels();
+    clearGo();
+}
+// @ts-ignore
+function Fitment(year, make, equipmenttype, model) {
+    this.year = year;
+    this.make = make;
+    this.equipmenttype = equipmenttype;
+    this.model = model;
+    return this;
+}
+Fitment.prototype.reset = function () {
+    this.make = null;
+    this.make = null;
+    this.equipmenttype = null;
+    this.model = null;
+    this.store();
+    return this;
+}
+
+Fitment.prototype.store = function () {
+    localStorage.setItem('FitmentSet', JSON.stringify(this));
+}
+
+Fitment.prototype.get = function () {
+    let ftmt = JSON.parse(localStorage.getItem('FitmentSet'));
+    if (ftmt !== null) {
+        this.year = ftmt.year;
+        this.make = ftmt.make;
+        this.equipmenttype = ftmt.equipmenttype;
+        this.model = ftmt.model;
+    }
+    return this;
+}
+
+async function restoreState() {
+    console.log("restoreState")
+    const ftmt = new Fitment(null, null, null, null);
+    console.log(ftmt)
+    ftmt.get();
+    if (ftmt == null) {
+        return
+    }
+    if (ftmt.year == null) {
+        return
+    }
+    console.log(ftmt);
+    //stop all observers
+    yearObserver.disconnect();
+    makeObserver.disconnect();
+    eqObserver.disconnect();
+    modelObserver.disconnect();
+    //year
+    let year = document.getElementById("year-select");
+    year.value = ftmt.year;
+    year.dataset.year = ftmt.year;
+    await buildMakes(ftmt.year);
+    //make
+    if (ftmt.make != null) {
+        let make = document.getElementById("make-select");
+        make.value = ftmt.make;
+        make.dataset.make = ftmt.make;
+    }
+    await buildEquipments(ftmt.year, ftmt.make);
+    //equipmenttype
+    if (ftmt.equipmenttype != null) {
+        let eqmt = document.getElementById("equipment-select");
+        eqmt.value = ftmt.equipmenttype;
+        eqmt.dataset.equipment = ftmt.equipmenttype;
+    }
+    await buildModels(ftmt.year, ftmt.make, ftmt.equipmenttype);
+    //models
+    if (ftmt.model != null) {
+        let model = document.getElementById("model-select");
+        model.value = ftmt.model;
+        model.dataset.equipment = ftmt.model;
+    }
+    clearGo();
+    setGo("/" + "collections/" + ftmt.model);
+    enableGo();
+    yearObserver.observe(YearSelect, yselconfig);
+    makeObserver.observe(MakeSelect, mselconfig);
+    eqObserver.observe(EqmtSelect, eqconfig);
+    modelObserver.observe(ModelSelect, modselconfig);
+}
+{% endjavascript %}
+
+<div id="ddfitment-widget" class="container">
+    <div id="ddfitment-logo"></div>
+    <div id="ddfitment-searchbox">
+        <select id="year-select" class="ddfitment-select">
+            <option>Select Year</option>
+        </select>
+        <select id="make-select" class="ddfitment-select" disabled="disabled">
+            <option>Select Make</option>
+        </select>
+        <select id="equipment-select" class="ddfitment-select" disabled="disabled">
+            <option>Select Equipment Type</option>
+        </select>
+        <select id="model-select" class="ddfitment-select" disabled="disabled">
+            <option>Select Model</option>
+        </select>
+        <div id="ddfitment-actions-panel">
+            <button id="search-action" class="action-btn" disabled="disabled" data-link="">
+                GO
+            </button>
+            <div class="ddfitment-clear-panel">
+                <button id="clear-action" class="action-btn">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

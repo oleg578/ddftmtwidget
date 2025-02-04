@@ -1,0 +1,11 @@
+### ftmt years
+GET http://localhost:3000/year/
+
+### ftmt brands for year
+GET http://localhost:3000/brand/?year=2022
+
+### ftmt equipmenttype for year+brand
+GET http://localhost:3000/equipment/?year=2022&brand=Polaris
+
+### ftmt handles for year+brand+equipmenttype
+GET http://localhost:3000/model/?year=2022&brand=Polaris&equipmenttype=ATV

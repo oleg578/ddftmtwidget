@@ -1,0 +1,101 @@
+#ddfitment-widget {
+  background-color: #58595b;
+  top: 0;
+  z-index: 4;
+  display: grid;
+  gap: 0.5rem;
+  padding: 4px 32px;
+  place-items: center;
+}
+
+#ddfitment-searchbox {
+  display: grid;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  grid-template-columns: 1fr;
+  overflow: hidden;
+  transition: height 0.33s ease-in-out, opacity 0.33s ease-in-out;
+}
+#ddfitment-logo {
+  min-width: 145px;
+  min-height: 36px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url(//cdn.shopify.com/s/files/1/0506/1761/4515/files/fitment-tool-icon-white.png?v=1663618276);
+}
+
+#ddfitment-actions-panel {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: #ffffff;
+  justify-items: center;
+  justify-content: space-between;
+}
+
+.action-btn {
+  padding: 4px;
+  min-width: 4rem;
+  border-radius: 4px;
+}
+
+button#search-action {
+  background: #ff7801;
+}
+
+button#search-action:disabled {
+  background: rgba(255, 120, 1, 0.27);
+}
+
+button#clear-action {
+  background-color: #ff0000;
+}
+
+select.ddfitment-select {
+  padding: 8px;
+  appearance: menulist-button;
+  -webkit-appearance: menulist-button;
+  height: 36px;
+}
+select.ddfitment-select:disabled {
+  background-color: #888;
+  color: #01010152;
+}
+
+.action-btn:hover {
+  cursor: pointer;
+}
+
+@media (min-width: 1200px) {
+  #ddfitment-widget {
+    grid-template-columns: 145px 1fr;
+  }
+  #ddfitment-searchbox {
+    grid-template-columns:
+      minmax(8rem, 10rem) minmax(12rem, 1fr) minmax(10rem, 1fr)
+      1fr 12rem;
+  }
+
+  #ddfitment-actions-panel {
+    justify-content: start;
+  }
+
+  #logo-container:after {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-left: auto;
+    content: "";
+    background-repeat: no-repeat;
+    background-image: none;
+    background-size: 1.25rem;
+    transition: transform 0.33s ease-in-out;
+  }
+  .ddfitment-rolled {
+    height: auto;
+    visibility: initial;
+    opacity: 1;
+  }
+}
